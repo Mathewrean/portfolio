@@ -265,6 +265,49 @@
       return;
     }
     document.title = `${item.title} · Mathewrean`;
+    const description = String(item.excerpt || item.title).replace(/\s+/g, ' ').trim();
+    const link = shareLink(item.slug);
+    const imagePath = item.cover || 'assets/images/profile.jpeg';
+    const image = /^https?:\/\//i.test(imagePath)
+      ? imagePath
+      : new URL(url(imagePath), window.location.href).href;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', link);
+    [
+      ['og:title', `${item.title} · Mathewrean`],
+      ['og:description', description],
+      ['og:url', link],
+      ['og:image', image],
+      ['og:type', 'article'],
+      ['article:published_time', item.date || ''],
+      ['article:section', item.category || ''],
+      ['twitter:title', `${item.title} · Mathewrean`],
+      ['twitter:description', description],
+      ['twitter:image', image],
+      ['keywords', [...new Set([item.category, ...(item.tags || [])].filter(Boolean))].join(', ')],
+    ].forEach(([name, value]) => {
+      const property = name === 'keywords' ? 'name' : 'property';
+      document.querySelector(`meta[${property}="${name}"]`)?.setAttribute('content', value);
+    });
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      mainEntityOfPage: { '@type': 'WebPage', '@id': link },
+      headline: item.title,
+      description,
+      image,
+      datePublished: item.date,
+      author: {
+        '@type': 'Person',
+        name: 'Mathewrean Otieno Magundho',
+        url: 'https://mathewrean.github.io/portfolio/',
+      },
+      articleSection: item.category,
+      keywords: item.tags || [],
+      inLanguage: 'en',
+    };
+    const schemaElement = document.getElementById('articleSchema');
+    if (schemaElement) schemaElement.textContent = JSON.stringify(schema).replace(/</g, '\\u003c');
     const mdRes = await fetch(url(item.md_path));
     const raw = mdRes.ok ? await mdRes.text() : 'Writeup file missing.';
     const isHtml = /\.html?$/i.test(item.md_path);
@@ -272,7 +315,6 @@
     const stats = localStats(item.slug);
     const reacted = localStorage.getItem(onceFlag('react', item.slug));
     const starred = localStorage.getItem(onceFlag('star', item.slug));
-    const link = shareLink(item.slug);
     root.innerHTML = `
       <div class="article-nav">
         <a class="btn" href="${url('index.html')}?view=writeups">All writeups</a>

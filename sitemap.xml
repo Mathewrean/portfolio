@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yourdomain.com/</loc>
-    <lastmod>2026-02-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <loc>https://mathewrean.github.io/portfolio/</loc>
+  </url>
+  <url>
+    <loc>https://mathewrean.github.io/portfolio/writeup.html?slug=lame</loc>
+  </url>
+  <url>
+    <loc>https://mathewrean.github.io/portfolio/writeup.html?slug=fawn</loc>
+  </url>
+  <url>
+    <loc>https://mathewrean.github.io/portfolio/writeup.html?slug=siem-drill</loc>
+  </url>
+  <url>
+    <loc>https://mathewrean.github.io/portfolio/writeup.html?slug=threat-model-erp</loc>
+  </url>
+  <url>
+    <loc>https://mathewrean.github.io/portfolio/writeup.html?slug=why-i-left-medium</loc>
   </url>
 </urlset>

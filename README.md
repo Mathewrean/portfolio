@@ -27,7 +27,7 @@ Then point your browser at `http://localhost:4173/index.html`. Browsers require 
 
 ## Admin editing
 
-Use `admin.html` to edit portfolio content, including writeups. The public portfolio and writeup pages are read-only. Admin changes are saved as drafts in that browser's local storage; they do not modify repository files or publish automatically. For writeups, use **Download Markdown + catalog**, then add the Markdown file under `/content/writeups` and replace `/data/writeups.json` in the repository.
+Use `admin.html` to edit portfolio content, including writeups. The public portfolio and writeup pages are read-only. Admin changes are saved as drafts in that browser's local storage; they do not modify repository files or publish automatically. For writeups, use **Download Markdown + catalog + sitemap**, then add the Markdown file under `/content/writeups` and replace `/data/writeups.json` and `/sitemap.xml` in the repository.
 
 ## Challenge & research modals
 
@@ -117,6 +117,10 @@ Public notes live in `data/writeups.json` and `content/writeups/`. Each card lin
 - Counts are shared via a public counter (`abacus.jasoncameron.dev`, namespace `mathewrean-portfolio`)
 - Admin drafts stay in browser storage until exported; exported Markdown and catalog files must be added to the repository to publish
 - Contact form posts to FormSubmit for `mathewrean@gmail.com` (confirm that inbox once)
+
+## Search discovery
+
+`sitemap.xml` lists the portfolio homepage and public writeup URLs. After publishing changes, add `https://mathewrean.github.io/portfolio/` as a URL-prefix property in [Google Search Console](https://search.google.com/search-console) and submit `sitemap.xml`. Search engines and AI search products decide independently whether and when to index or cite pages; submission and structured metadata improve discovery but cannot guarantee placement.
 
 ## Restoring this folder onto the GitHub repo
 

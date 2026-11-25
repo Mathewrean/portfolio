@@ -907,6 +907,7 @@ function bindEvents() {
 }
 
 const LOCAL_ADMIN_DRAFT_KEY = 'portfolio-admin-local-draft';
+const PORTFOLIO_PUBLIC_URL = 'https://mathewrean.github.io/portfolio/';
 
 function currentAdminCard(title, detail) {
   return `<article class="admin-card"><strong>${safe(title)}</strong>${detail ? `<p>${safe(detail)}</p>` : ''}</article>`;
@@ -1139,8 +1140,13 @@ function initCurrentAdmin() {
       const saved = saveWriteup();
       if (!saved) return;
       downloadWriteupFile(`${saved.entry.slug}.md`, saved.body, 'text/markdown;charset=utf-8');
-      downloadWriteupFile('writeups.json', JSON.stringify(data.writeups, null, 2), 'application/json;charset=utf-8');
-      toast('Downloaded the Markdown and catalog. Add them to the site repository to publish.');
+      exportWriteupCatalog(data.writeups);
+      toast('Downloaded the Markdown, catalog, and sitemap. Add them to the site repository to publish.');
+    });
+
+    $('exportWriteupCatalog').addEventListener('click', () => {
+      exportWriteupCatalog(data.writeups);
+      toast('Downloaded the catalog and sitemap.');
     });
 
     $('resetWriteup').addEventListener('click', resetWriteupForm);
@@ -1194,6 +1200,22 @@ function downloadWriteupFile(name, text, type) {
   link.download = name;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportWriteupCatalog(writeups) {
+  const entries = [
+    PORTFOLIO_PUBLIC_URL,
+    ...(writeups.items || []).map((item) => `${PORTFOLIO_PUBLIC_URL}writeup.html?slug=${encodeURIComponent(item.slug)}`),
+  ];
+  const sitemap = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...entries.map((entry) => `  <url><loc>${entry}</loc></url>`),
+    '</urlset>',
+    '',
+  ].join('\n');
+  downloadWriteupFile('writeups.json', JSON.stringify(writeups, null, 2), 'application/json;charset=utf-8');
+  downloadWriteupFile('sitemap.xml', sitemap, 'application/xml;charset=utf-8');
 }
 
 async function init() {

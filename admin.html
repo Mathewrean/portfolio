@@ -9,6 +9,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>Admin · Mathewrean Portfolio</title>
   <meta name="description" content="Admin dashboard for Mathewrean's cybersecurity portfolio." />
+  <meta name="robots" content="noindex,nofollow" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <link rel="stylesheet" href="assets/css/main.css" />
   <script defer src="assets/js/admin.js"></script>
@@ -157,6 +158,9 @@
         <article class="panel preview-panel">
           <h2>Writeups</h2>
           <p class="muted">Manage public writeups here. Edits are saved as a draft in this browser.</p>
+          <div class="toolbar">
+            <button id="exportWriteupCatalog" type="button" class="btn">Download catalog + sitemap</button>
+          </div>
           <div id="writeupPreview" class="preview-stack"></div>
         </article>
         <article class="panel form-panel">
@@ -173,7 +177,7 @@
             <label class="full">Markdown<textarea id="writeupBody" name="body" rows="16" required></textarea></label>
             <div class="toolbar full">
               <button type="submit" class="btn btn-primary">Save draft</button>
-              <button id="exportWriteup" type="button" class="btn">Download Markdown + catalog</button>
+              <button id="exportWriteup" type="button" class="btn">Download Markdown + catalog + sitemap</button>
               <button id="resetWriteup" type="button" class="btn">Clear form</button>
             </div>
           </form>
