@@ -1,14 +1,12 @@
-const VIEW_IDS = ['home', 'about', 'resume', 'certificates', 'projects', 'challenges', 'contact', 'gallery', 'research'];
+const VIEW_IDS = ['home', 'about', 'resume', 'certificates', 'projects', 'challenges', 'writeups', 'contact', 'gallery', 'research'];
 const themeKey = 'portfolio_theme';
 const repoMeta = document.querySelector('meta[name="repo-base-path"]');
-const repoBase = repoMeta?.content?.trim() || '';
-const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const isGithubPages = window.location.hostname.endsWith('.github.io');
-const normalizedBase = isLocalhost || isGithubPages ? '' : (repoBase ? repoBase.replace(/\/+$/g, '') : '');
+const pathBaseMatch = window.location.pathname.match(/^(.*\/portfolio)(?:\/|$)/);
+const normalizedBase = pathBaseMatch ? pathBaseMatch[1] : '';
 const DATA_ROOT = `${normalizedBase ? `${normalizedBase}/` : ''}data`;
 const CONTENT_ROOT = `${normalizedBase ? `${normalizedBase}/` : ''}content`;
 
-console.log(`[PORTFOLIO] Script loaded. isLocalhost=${isLocalhost}, isGithubPages=${isGithubPages}, normalizedBase="${normalizedBase}", DATA_ROOT="${DATA_ROOT}"`);
+console.log(`[PORTFOLIO] base="${normalizedBase}" data="${DATA_ROOT}"`);
 
 // Immediately flag that the script is running
 document.documentElement.setAttribute('data-js-loaded', 'true');
@@ -147,7 +145,7 @@ function applyTheme(theme) {
 function initThemeToggle() {
   const saved = localStorage.getItem(themeKey);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+  applyTheme(saved || 'light');
   document.getElementById('themeToggle').addEventListener('click', () => {
     const current = document.body.getAttribute('data-theme');
     applyTheme(current === 'dark' ? 'light' : 'dark');
@@ -166,6 +164,9 @@ function setActiveView(view) {
   if (target === 'challenges') {
     highlightPlatformTabs(state.activePlatformTab);
   }
+  if (target === 'writeups' && window.Writeups) {
+    window.Writeups.mountIndex();
+  }
 }
 
 function setupNavigation() {
@@ -181,6 +182,12 @@ function setupNavigation() {
   const mobileToggle = document.getElementById('mobileNavToggle');
   const sidebar = document.getElementById('sidebarNav');
   mobileToggle?.addEventListener('click', () => sidebar?.classList.toggle('open'));
+  document.querySelectorAll('#sidebarNav button').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.id === 'challengeGroupToggle') return;
+      if (window.matchMedia('(max-width: 920px)').matches) sidebar?.classList.remove('open');
+    });
+  });
 }
 
 function renderHero(profile) {

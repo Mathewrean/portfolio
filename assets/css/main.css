@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Orbitron:wght@400;500;600&family=Share+Tech+Mono&family=Space+Grotesk:wght@500;700&display=swap');
+/* Fonts are loaded from the HTML head (preconnect + one stylesheet), not @import. */
 
 :root {
   --font-display: 'Orbitron', 'Space Grotesk', sans-serif;
@@ -626,6 +626,10 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
   grid-template-columns: 250px 1fr;
 }
 
+.admin-layout[hidden] {
+  display: none;
+}
+
 .admin-sidebar {
   border-right: 1px solid var(--line);
   background: var(--surface);
@@ -660,6 +664,17 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.8rem;
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-login-panel {
+  max-width: 420px;
+  width: 100%;
 }
 
 .admin-panel {

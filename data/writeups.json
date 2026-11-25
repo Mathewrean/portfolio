@@ -1,0 +1,70 @@
+{
+  "categories": [
+    "HackTheBox",
+    "TryHackMe",
+    "PicoCTF",
+    "CTFZone",
+    "Research",
+    "Stories",
+    "Blue Team"
+  ],
+  "items": [
+    {
+      "slug": "lame",
+      "title": "Lame — SMB notes",
+      "category": "HackTheBox",
+      "tags": ["Linux", "Boot2Root", "SMB"],
+      "difficulty": "Easy",
+      "date": "2025-03-04",
+      "excerpt": "Enumeration notes for the Lame lab: service discovery, share review, and how the commands are shown.",
+      "md_path": "content/writeups/lame.md",
+      "cover": "assets/images/challenges/lame_badge-ee35f6c6ac70.png",
+      "reading_minutes": 4
+    },
+    {
+      "slug": "fawn",
+      "title": "Fawn — anonymous FTP",
+      "category": "HackTheBox",
+      "tags": ["FTP", "Enumeration"],
+      "difficulty": "Easy",
+      "date": "2026-02-26",
+      "excerpt": "A short lab note on spotting a misconfigured FTP service and recording the session cleanly.",
+      "md_path": "content/writeups/fawn.md",
+      "cover": "assets/images/challenges/fawn_badge-7e58daa0d214.png",
+      "reading_minutes": 3
+    },
+    {
+      "slug": "siem-drill",
+      "title": "SIEM drill & analytics",
+      "category": "Blue Team",
+      "tags": ["SIEM", "Wazuh", "Splunk"],
+      "difficulty": "Notes",
+      "date": "2025-11-26",
+      "excerpt": "What I kept from the Cyber Chief Circle drill across Arkime, Wazuh, and Splunk.",
+      "md_path": "content/writeups/siem-drill.md",
+      "reading_minutes": 4
+    },
+    {
+      "slug": "threat-model-erp",
+      "title": "Threat model for a campus ERP",
+      "category": "Research",
+      "tags": ["Threat modeling", "IAM"],
+      "difficulty": "Notes",
+      "date": "2025-05-01",
+      "excerpt": "Trust zones, data flows, and the mitigations I would prioritize first.",
+      "md_path": "content/writeups/threat-model-erp.md",
+      "reading_minutes": 4
+    },
+    {
+      "slug": "why-i-left-medium",
+      "title": "Why these notes live here",
+      "category": "Stories",
+      "tags": ["Writing"],
+      "difficulty": "Story",
+      "date": "2026-08-24",
+      "excerpt": "Medium kept gating lab notes. This page is the replacement: categories, terminals, and a link that stays mine.",
+      "md_path": "content/writeups/why-i-left-medium.md",
+      "reading_minutes": 2
+    }
+  ]
+}

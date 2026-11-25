@@ -18,7 +18,8 @@ All URLs respect the `<meta name="repo-base-path" content="/portfolio">` tag so 
 ## Running locally
 
 ```bash
-# from the repo root
+# from the portfolio directory
+cd site
 python3 -m http.server 4173
 ```
 
@@ -30,7 +31,7 @@ Then point your browser at `http://localhost:4173/index.html`. Browsers require 
 2. Add or update markdown files under `/content/challenges` or `/content/research` and reference them via the `md_path` values.
 3. Preview locally with the HTTP server above, then commit the JSON/Markdown changes (and any new assets) so GitHub Pages serves the same data automatically.
 
-The admin UI (`admin.html`) is a static scaffold to keep future automation or GitHub API wiring in one place, but it currently relies on manual edits (no backend sync).
+The admin UI (`admin.html`) loads the portfolio JSON and keeps edits in this browser's local storage. It does not write files or publish changes; update the JSON and Markdown files in the repository to publish them.
 
 ## Challenge & research modals
 
@@ -110,7 +111,34 @@ Each preview card has a `Delete` button that reveals an inline "Delete {title}? 
 **5. State Consistency Rule**
 After every add/edit/delete, the admin panel re-fetches the affected JSON and re-renders so the preview column always reflects the repo’s true state; nothing stays cached indefinitely.
 
-## Notes for future updates
+## Writeups
+
+Public notes live in `data/writeups.json` and `content/writeups/`. Each card links to `writeup.html?slug=...`, which is the URL to share.
+
+- Categories, search, and sort (newest, reads, stars, reactions)
+- Fenced `bash` / `shell` blocks render as terminals with copy
+- One react and one star per browser; reads increment once per browser
+- Counts are shared via a public counter (`abacus.jasoncameron.dev`, namespace `mathewrean-portfolio`)
+- **New writeup** downloads a `.md` file and a replacement `data/writeups.json` to commit
+- Contact form posts to FormSubmit for `mathewrean@gmail.com` (confirm that inbox once)
+
+## Restoring this folder onto the GitHub repo
+
+```bash
+cd site
+git checkout -b writeups-platform
+git add -A
+git commit -m "Host writeups on the portfolio"
+git push -u origin writeups-platform
+```
+
+The Git history is attached to this current `site/` directory. The older
+`portfolio/` directory is retained as an untouched reference copy.
+
+Open a pull request into `main`. GitHub Pages should keep serving the `main` branch (or whichever branch Pages uses) from the repository root. The site detects a `/portfolio` prefix automatically.
+
+Do not recompress or edit files under `assets/images/`.
+
 
 - Keep absolute paths out of CSS/JS; rely on the `repo-base-path` meta tag and `buildUrl` helper.
 - If you want a GitHub-backed admin workflow, implement GitHub Contents API calls in `assets/js/admin.js` and guard them with stored credentials (no PATs in source).

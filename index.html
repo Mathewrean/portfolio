@@ -10,17 +10,22 @@
   <meta http-equiv="Expires" content="0" />
   <title>Mathewrean | Cybersecurity Portfolio</title>
   <meta name="description"
-    content="Cybersecurity portfolio with projects, certificates, challenges, research, and contact details." />
-  <!-- CSP: added marked.js CDN for MD rendering -->
+    content="Cybersecurity portfolio, lab writeups, and research by Mathewrean." />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self'; frame-src https://tryhackme.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" />
+    content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://abacus.jasoncameron.dev https://formsubmit.co; frame-src https://tryhackme.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,640&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" />
   <link rel="stylesheet" href="assets/css/main.css" />
-  <script defer src="assets/js/main.js"></script>
+  <link rel="stylesheet" href="assets/css/writeups.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <script defer src="assets/js/main.js"></script>
+  <script defer src="assets/js/writeups.js"></script>
 </head>
 
-<body>
+<body data-theme="light">
   <button id="themeToggle" class="floating-theme-toggle" aria-label="Toggle dark and light mode"
     title="Toggle theme">◐</button>
   <aside class="sidebar" id="sidebar">
@@ -48,6 +53,7 @@
         </div>
       </div>
 
+      <button class="nav-link" data-view="writeups">Writeups</button>
       <button class="nav-link" data-view="contact">Contact</button>
       <button class="nav-link" data-view="gallery">Gallery</button>
       <button class="nav-link" data-view="research">Research</button>
@@ -70,10 +76,10 @@
     <section class="view-section" data-view="resume">
       <h2>Resume</h2>
       <p class="muted">Download the latest resume and view profile highlights.</p>
-      <a class="btn btn-primary" href="Mathew_Magundho_CV.pdf" download="Mathew_Magundho_CV.pdf">Download Resume PDF</a>
+      <a class="btn btn-primary" href="Mathew_Magundho_C.V.pdf" download="Mathew_Magundho_C.V.pdf">Download Resume PDF</a>
       <a class="btn" href="assets/Mathew_Magundho_Cover_Letter.pdf" download="Mathew_Magundho_Cover_Letter.pdf">Download
         Cover Letter PDF</a>
-      <div id="resumeContent" class="stack" style="margin-top:1rem;"></div>
+      <div id="resumeContent" class="stack resume-content"></div>
     </section>
 
     <section class="view-section" data-view="certificates">
@@ -102,9 +108,47 @@
       <div id="challengeList" class="stack"></div>
     </section>
 
+    <section class="view-section" data-view="writeups">
+      <div class="writeups-head">
+        <div>
+          <p class="eyebrow">Lab notes · Research · Stories</p>
+          <h2>Writeups</h2>
+          <p class="muted">On-site notes with clean terminals, categories, and a share link that opens here — not Medium.</p>
+        </div>
+        <a id="openComposer" class="btn btn-primary" href="studio.html">Write a note</a>
+      </div>
+      <div id="mostRead" class="most-read"></div>
+      <div class="writeup-toolbar">
+        <label>Category
+          <select id="writeupCategory"></select>
+        </label>
+        <label class="grow">Search
+          <input id="writeupSearch" type="search" placeholder="Title, tag, or tool" />
+        </label>
+        <label>Sort
+          <select id="writeupSort">
+            <option value="newest">Newest</option>
+            <option value="reads">Most read</option>
+            <option value="stars">Most starred</option>
+            <option value="reacts">Most reactions</option>
+          </select>
+        </label>
+      </div>
+      <div id="writeupGrid" class="writeup-grid"></div>
+    </section>
+
     <section class="view-section" data-view="contact">
       <h2>Contact</h2>
       <div id="contactLinks" class="contact-list"></div>
+      <form id="mailForm" class="mail-form">
+        <h3>Send a note</h3>
+        <p class="muted">Goes to mathewrean@gmail.com. The first message may ask FormSubmit to confirm the address.</p>
+        <label>Name <input name="name" required maxlength="80" /></label>
+        <label>Email <input name="email" type="email" required maxlength="120" /></label>
+        <label>Message <textarea name="message" required maxlength="4000" rows="5"></textarea></label>
+        <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" />
+        <button class="btn btn-primary" type="submit">Send mail</button>
+      </form>
     </section>
 
     <section class="view-section" data-view="gallery">
@@ -126,6 +170,25 @@
   <dialog id="contentModal" class="markdown-dialog">
     <button id="closeContentModal" class="close-dialog" aria-label="Close">Close</button>
     <div id="modalContent"></div>
+  </dialog>
+  <dialog id="composerDialog" class="markdown-dialog composer-dialog">
+    <button id="closeComposer" class="close-dialog" type="button">Close</button>
+    <form id="composerForm" class="composer">
+      <h3>Draft a writeup</h3>
+      <p class="muted">This site is static on GitHub Pages. Download the markdown and the updated catalog, then commit them.</p>
+      <label>Title <input id="cTitle" required /></label>
+      <label>Category
+        <select id="cCategory"></select>
+      </label>
+      <label>Tags <input id="cTags" placeholder="Forensics, SMB" /></label>
+      <label>Excerpt <input id="cExcerpt" maxlength="220" /></label>
+      <label>Markdown
+        <textarea id="cBody" rows="12" placeholder="## Recon&#10;&#10;```bash&#10;$ nmap -sC -sV TARGET&#10;```"></textarea>
+      </label>
+      <div class="composer-actions">
+        <button class="btn btn-primary" type="submit">Download files</button>
+      </div>
+    </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>

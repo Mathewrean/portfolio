@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Write · Mathewrean</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,640&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/writeups.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
+</head>
+<body data-theme="light">
+  <main class="content" style="margin-left:0;max-width:860px;margin:0 auto;padding:1.2rem;">
+    <p><a href="index.html?view=writeups">← Portfolio</a></p>
+    <h1>Write</h1>
+    <p class="muted">Type like a document. Place photos where the cursor is. Download, then commit the two files to GitHub Pages.</p>
+    <label>Title <input id="cTitle" style="width:100%" /></label>
+    <div class="writeup-toolbar" style="margin-top:0.6rem">
+      <label>Category <select id="cCategory"></select></label>
+      <label class="grow">Excerpt <input id="cExcerpt" maxlength="220" /></label>
+    </div>
+    <div class="toolbar">
+      <button type="button" data-cmd="bold"><b>B</b></button>
+      <button type="button" data-cmd="italic"><i>I</i></button>
+      <button type="button" data-cmd="h2">Heading</button>
+      <button type="button" data-cmd="ul">List</button>
+      <button type="button" data-cmd="quote">Quote</button>
+      <button type="button" data-cmd="term">Terminal</button>
+      <button type="button" id="addImage">Image</button>
+      <input id="imageFile" type="file" accept="image/*" hidden />
+    </div>
+    <div id="doc" class="doc" contenteditable="true">
+      <h2>What I looked at</h2>
+      <p>Write the story here. Drop a screenshot under the paragraph it belongs to.</p>
+    </div>
+    <p><button id="save" class="btn btn-primary" type="button">Download note</button></p>
+  </main>
+  <script>
+    const categories = ['HackTheBox','TryHackMe','PicoCTF','CTFZone','Research','Stories','Blue Team'];
+    document.getElementById('cCategory').innerHTML = categories.map((c) => `<option>${c}</option>`).join('');
+    const doc = document.getElementById('doc');
+    function slugify(s) {
+      return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 60) || 'note';
+    }
+    document.querySelectorAll('[data-cmd]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.dataset.cmd;
+        doc.focus();
+        if (cmd === 'bold') document.execCommand('bold');
+        if (cmd === 'italic') document.execCommand('italic');
+        if (cmd === 'h2') document.execCommand('formatBlock', false, 'h2');
+        if (cmd === 'ul') document.execCommand('insertUnorderedList');
+        if (cmd === 'quote') document.execCommand('formatBlock', false, 'blockquote');
+        if (cmd === 'term') {
+          document.execCommand('insertHTML', false, '<pre class="term"><code>$ </code></pre><p><br></p>');
+        }
+      });
+    });
+    document.getElementById('addImage').addEventListener('click', () => document.getElementById('imageFile').click());
+    document.getElementById('imageFile').addEventListener('change', () => {
+      const file = document.getElementById('imageFile').files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => {
+          const max = 1400;
+          const scale = Math.min(1, max / Math.max(image.width, image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(image.width * scale);
+          canvas.height = Math.round(image.height * scale);
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          const src = canvas.toDataURL('image/jpeg', 0.86);
+          doc.focus();
+          document.execCommand('insertHTML', false, `<figure><img src="${src}" alt=""><figcaption></figcaption></figure><p><br></p>`);
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    function download(name, text, type) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type }));
+      a.download = name;
+      a.click();
+    }
+    document.getElementById('save').addEventListener('click', async () => {
+      const title = document.getElementById('cTitle').value.trim() || 'Untitled';
+      const slug = slugify(title);
+      const category = document.getElementById('cCategory').value;
+      const excerpt = document.getElementById('cExcerpt').value.trim();
+      const html = `<article>\n<h1>${title.replace(/[&<>]/g, '')}</h1>\n${doc.innerHTML}\n</article>\n`;
+      download(`${slug}.html`, html, 'text/html');
+      let catalog = { categories, items: [] };
+      try {
+        const res = await fetch('data/writeups.json');
+        if (res.ok) catalog = await res.json();
+      } catch {}
+      const entry = {
+        slug, title, category, tags: [], difficulty: 'Notes',
+        date: new Date().toISOString().slice(0, 10), excerpt,
+        md_path: `content/writeups/${slug}.html`, reading_minutes: 4
+      };
+      catalog.items = [entry, ...(catalog.items || []).filter((i) => i.slug !== slug)];
+      download('writeups.json', JSON.stringify(catalog, null, 2), 'application/json');
+    });
+  </script>
+</body>
+</html>

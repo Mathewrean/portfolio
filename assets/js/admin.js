@@ -906,6 +906,154 @@ function bindEvents() {
   $('downloadGalleryJson').addEventListener('click', () => downloadJson('gallery.json', state.gallery.map((x) => ({ url: x.image_path, caption: x.caption, date: x.event_date }))));
 }
 
+const LOCAL_ADMIN_DRAFT_KEY = 'portfolio-admin-local-draft';
+
+function currentAdminCard(title, detail) {
+  return `<article class="admin-card"><strong>${safe(title)}</strong>${detail ? `<p>${safe(detail)}</p>` : ''}</article>`;
+}
+
+function renderCurrentAdmin(data) {
+  const { profile, resume, certificates, projects, challenges, research, gallery } = data;
+  $('profileCurrent').innerHTML = currentAdminCard(profile.name, profile.tagline) + `<p>${safe(profile.about)}</p>`;
+  $('contactPreview').innerHTML = (profile.contact || []).map((item) => currentAdminCard(item.label, item.url)).join('') || '<p>No contact links.</p>';
+  $('resumePreview').innerHTML = (resume.highlights || []).map((section) => currentAdminCard(section.section, (section.items || []).map((item) => item.title).join(', '))).join('') || '<p>No resume highlights.</p>';
+  $('certPreview').innerHTML = certificates.map((item) => currentAdminCard(item.title || item.name, item.issuer)).join('') || '<p>No certificates yet.</p>';
+  $('projectPreview').innerHTML = projects.map((item) => currentAdminCard(item.title, item.description)).join('') || '<p>No projects yet.</p>';
+  const challengeItems = Object.entries(challenges).flatMap(([platform, items]) => Array.isArray(items) ? items.map((item) => ({ ...item, platform })) : []);
+  $('challengePreview').innerHTML = challengeItems.map((item) => currentAdminCard(item.title, `${item.platform} · ${item.difficulty || ''}`)).join('') || '<p>No challenges yet.</p>';
+  $('researchPreview').innerHTML = research.map((item) => currentAdminCard(item.title, item.description)).join('') || '<p>No research yet.</p>';
+  $('galleryPreview').innerHTML = gallery.map((item) => currentAdminCard(item.title || item.caption, item.date || item.caption)).join('') || '<p>No gallery items yet.</p>';
+}
+
+function fillCurrentAdminForms(data) {
+  const form = $('profileForm');
+  for (const name of ['name', 'tagline', 'eyebrow', 'summary', 'about']) {
+    form.elements.namedItem(name).value = data.profile[name] || '';
+  }
+  form.elements.namedItem('contact').value = JSON.stringify(data.profile.contact || [], null, 2);
+  $('resumeEditor').value = JSON.stringify(data.resume, null, 2);
+}
+
+async function loadCurrentAdminData() {
+  const files = ['profile', 'resume', 'certificates', 'projects', 'challenges', 'research', 'gallery'];
+  const loaded = await Promise.all(files.map(async (name) => {
+    const response = await fetch(`data/${name}.json`);
+    if (!response.ok) throw new Error(`Failed to load data/${name}.json`);
+    return [name, await response.json()];
+  }));
+  const data = Object.fromEntries(loaded);
+  const saved = localStorage.getItem(LOCAL_ADMIN_DRAFT_KEY);
+  return saved ? { ...data, ...JSON.parse(saved) } : data;
+}
+
+function initCurrentAdmin() {
+  setupThemeToggle();
+  document.querySelectorAll('.admin-nav-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.admin-nav-btn').forEach((item) => item.classList.toggle('active', item === button));
+      document.querySelectorAll('.admin-panel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === button.dataset.panel));
+    });
+  });
+
+  loadCurrentAdminData().then((data) => {
+    const persist = () => {
+      try {
+        localStorage.setItem(LOCAL_ADMIN_DRAFT_KEY, JSON.stringify(data));
+        renderCurrentAdmin(data);
+        toast('Saved in this browser only. Source JSON files are unchanged.');
+      } catch (error) {
+        console.error('[Admin] Could not save local draft:', error);
+        toast('Could not save this browser draft.', 'error');
+      }
+    };
+    fillCurrentAdminForms(data);
+    renderCurrentAdmin(data);
+
+    $('profileForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        data.profile = {
+          ...data.profile,
+          name: form.elements.namedItem('name').value.trim(),
+          tagline: form.elements.namedItem('tagline').value.trim(),
+          eyebrow: form.elements.namedItem('eyebrow').value.trim(),
+          summary: form.elements.namedItem('summary').value.trim(),
+          about: form.elements.namedItem('about').value.trim(),
+          contact: JSON.parse(form.elements.namedItem('contact').value || '[]'),
+        };
+        persist();
+      } catch {
+        toast('Contact must be valid JSON.', 'error');
+      }
+    });
+
+    $('saveResume').addEventListener('click', () => {
+      try {
+        data.resume = JSON.parse($('resumeEditor').value);
+        persist();
+      } catch {
+        toast('Resume must be valid JSON.', 'error');
+      }
+    });
+
+    const text = (formData, name) => String(formData.get(name) || '').trim();
+    const addEntry = (formId, collection, createEntry) => {
+      $(formId).addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const entry = createEntry(formData);
+        if (!entry.title && !entry.caption) {
+          toast('Add a title or caption first.', 'error');
+          return;
+        }
+        collection.push(entry);
+        event.currentTarget.reset();
+        persist();
+      });
+    };
+    addEntry('certificateForm', data.certificates, (form) => ({
+      title: text(form, 'title'), issuer: text(form, 'issuer'), date: text(form, 'date'),
+      credential_url: text(form, 'credential_url'),
+    }));
+    addEntry('projectForm', data.projects, (form) => ({
+      title: text(form, 'title'), description: text(form, 'description'),
+      tags: text(form, 'tags').split(',').map((item) => item.trim()).filter(Boolean),
+      repo_url: text(form, 'repo_url'), live_url: text(form, 'live_url'), date: text(form, 'date'),
+    }));
+    $('challengeForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      const title = text(formData, 'title');
+      const platform = text(formData, 'platform');
+      if (!title || !platform) {
+        toast('Add a title and platform first.', 'error');
+        return;
+      }
+      const entries = data.challenges[platform] || (data.challenges[platform] = []);
+      entries.push({
+        title, difficulty: text(formData, 'difficulty'),
+        description: text(formData, 'description'), date: text(formData, 'date'),
+        categories: text(formData, 'categories').split(',').map((item) => item.trim()).filter(Boolean),
+        markdown: text(formData, 'markdown'),
+      });
+      event.currentTarget.reset();
+      persist();
+    });
+    addEntry('researchForm', data.research, (form) => ({
+      title: text(form, 'title'), description: text(form, 'description'),
+      tags: text(form, 'tags').split(',').map((item) => item.trim()).filter(Boolean),
+      date: text(form, 'date'), markdown: text(form, 'markdown'),
+    }));
+    addEntry('galleryForm', data.gallery, (form) => ({
+      title: text(form, 'title'), caption: text(form, 'caption'), date: text(form, 'date'),
+    }));
+  }).catch((error) => {
+    console.error('[Admin] Could not load local portfolio data:', error);
+    toast(error.message, 'error');
+  });
+}
+
 async function init() {
   setupThemeToggle();
   $('modeTag').textContent = 'Static JSON Mode';
@@ -957,7 +1105,11 @@ async function init() {
   renderAllTables();
 }
 
-init().catch((err) => {
-  console.error(err);
-  $('authMessage').textContent = 'Failed to initialize static admin. Check JSON files.';
-});
+if ($('authForm')) {
+  init().catch((err) => {
+    console.error(err);
+    $('authMessage').textContent = 'Failed to initialize static admin. Check JSON files.';
+  });
+} else {
+  initCurrentAdmin();
+}
