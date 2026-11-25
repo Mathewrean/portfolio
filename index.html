@@ -115,7 +115,6 @@
           <h2>Writeups</h2>
           <p class="muted">On-site notes with clean terminals, categories, and a share link that opens here — not Medium.</p>
         </div>
-        <a id="openComposer" class="btn btn-primary" href="studio.html">Write a note</a>
       </div>
       <div id="mostRead" class="most-read"></div>
       <div class="writeup-toolbar">
@@ -170,25 +169,6 @@
   <dialog id="contentModal" class="markdown-dialog">
     <button id="closeContentModal" class="close-dialog" aria-label="Close">Close</button>
     <div id="modalContent"></div>
-  </dialog>
-  <dialog id="composerDialog" class="markdown-dialog composer-dialog">
-    <button id="closeComposer" class="close-dialog" type="button">Close</button>
-    <form id="composerForm" class="composer">
-      <h3>Draft a writeup</h3>
-      <p class="muted">This site is static on GitHub Pages. Download the markdown and the updated catalog, then commit them.</p>
-      <label>Title <input id="cTitle" required /></label>
-      <label>Category
-        <select id="cCategory"></select>
-      </label>
-      <label>Tags <input id="cTags" placeholder="Forensics, SMB" /></label>
-      <label>Excerpt <input id="cExcerpt" maxlength="220" /></label>
-      <label>Markdown
-        <textarea id="cBody" rows="12" placeholder="## Recon&#10;&#10;```bash&#10;$ nmap -sC -sV TARGET&#10;```"></textarea>
-      </label>
-      <div class="composer-actions">
-        <button class="btn btn-primary" type="submit">Download files</button>
-      </div>
-    </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>

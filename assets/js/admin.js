@@ -912,8 +912,25 @@ function currentAdminCard(title, detail) {
   return `<article class="admin-card"><strong>${safe(title)}</strong>${detail ? `<p>${safe(detail)}</p>` : ''}</article>`;
 }
 
+function renderWriteupAdmin(writeups) {
+  const preview = $('writeupPreview');
+  if (!preview) return;
+  const items = writeups.items || [];
+  preview.innerHTML = items.map((item, index) => `
+    <article class="admin-card">
+      <strong>${safe(item.title)}</strong>
+      <p>${safe(item.category)} · ${safe(item.date || '')}</p>
+      <div class="toolbar">
+        <button type="button" class="btn" data-writeup-edit="${index}">Edit</button>
+        <button type="button" class="btn" data-writeup-delete="${index}">Delete</button>
+        <a class="btn" href="writeup.html?slug=${encodeURIComponent(item.slug)}" target="_blank" rel="noopener">View</a>
+      </div>
+    </article>
+  `).join('') || '<p>No writeups yet.</p>';
+}
+
 function renderCurrentAdmin(data) {
-  const { profile, resume, certificates, projects, challenges, research, gallery } = data;
+  const { profile, resume, certificates, projects, challenges, research, gallery, writeups } = data;
   $('profileCurrent').innerHTML = currentAdminCard(profile.name, profile.tagline) + `<p>${safe(profile.about)}</p>`;
   $('contactPreview').innerHTML = (profile.contact || []).map((item) => currentAdminCard(item.label, item.url)).join('') || '<p>No contact links.</p>';
   $('resumePreview').innerHTML = (resume.highlights || []).map((section) => currentAdminCard(section.section, (section.items || []).map((item) => item.title).join(', '))).join('') || '<p>No resume highlights.</p>';
@@ -923,6 +940,7 @@ function renderCurrentAdmin(data) {
   $('challengePreview').innerHTML = challengeItems.map((item) => currentAdminCard(item.title, `${item.platform} · ${item.difficulty || ''}`)).join('') || '<p>No challenges yet.</p>';
   $('researchPreview').innerHTML = research.map((item) => currentAdminCard(item.title, item.description)).join('') || '<p>No research yet.</p>';
   $('galleryPreview').innerHTML = gallery.map((item) => currentAdminCard(item.title || item.caption, item.date || item.caption)).join('') || '<p>No gallery items yet.</p>';
+  renderWriteupAdmin(writeups);
 }
 
 function fillCurrentAdminForms(data) {
@@ -935,7 +953,7 @@ function fillCurrentAdminForms(data) {
 }
 
 async function loadCurrentAdminData() {
-  const files = ['profile', 'resume', 'certificates', 'projects', 'challenges', 'research', 'gallery'];
+  const files = ['profile', 'resume', 'certificates', 'projects', 'challenges', 'research', 'gallery', 'writeups'];
   const loaded = await Promise.all(files.map(async (name) => {
     const response = await fetch(`data/${name}.json`);
     if (!response.ok) throw new Error(`Failed to load data/${name}.json`);
@@ -954,6 +972,10 @@ function initCurrentAdmin() {
       document.querySelectorAll('.admin-panel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === button.dataset.panel));
     });
   });
+  const requestedPanel = new URLSearchParams(location.search).get('panel');
+  const requestedPanelButton = Array.from(document.querySelectorAll('.admin-nav-btn'))
+    .find((button) => button.dataset.panel === requestedPanel);
+  requestedPanelButton?.click();
 
   loadCurrentAdminData().then((data) => {
     const persist = () => {
@@ -1048,10 +1070,130 @@ function initCurrentAdmin() {
     addEntry('galleryForm', data.gallery, (form) => ({
       title: text(form, 'title'), caption: text(form, 'caption'), date: text(form, 'date'),
     }));
+
+    const writeupForm = $('writeupForm');
+    const categories = data.writeups.categories || [];
+    $('writeupCategory').innerHTML = `<option value="">Select category</option>${categories
+      .map((category) => `<option value="${safe(category)}">${safe(category)}</option>`).join('')}`;
+
+    const resetWriteupForm = () => {
+      writeupForm.reset();
+      $('writeupOriginalSlug').value = '';
+      $('writeupSlug').value = '';
+      $('writeupDate').value = new Date().toISOString().slice(0, 10);
+      $('writeupCategory').value = categories[0] || '';
+    };
+
+    $('writeupTitle').addEventListener('input', () => {
+      if (!$('writeupOriginalSlug').value) {
+        $('writeupSlug').value = $('writeupTitle').value.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60).replace(/-$/g, '');
+      }
+    });
+
+    const saveWriteup = () => {
+      const formData = new FormData(writeupForm);
+      const originalSlug = text(formData, 'original_slug');
+      const title = text(formData, 'title');
+      const slug = originalSlug || text(formData, 'slug');
+      const body = String(formData.get('body') || '').trim();
+      if (!title || !slug || !body) {
+        toast('Add a title and Markdown body before saving.', 'error');
+        return null;
+      }
+
+      const items = data.writeups.items || (data.writeups.items = []);
+      const existingIndex = items.findIndex((item) => item.slug === originalSlug);
+      const existing = existingIndex >= 0 ? items[existingIndex] : null;
+      const entry = {
+        ...existing,
+        slug,
+        title,
+        category: text(formData, 'category'),
+        tags: text(formData, 'tags').split(',').map((tag) => tag.trim()).filter(Boolean),
+        difficulty: text(formData, 'difficulty') || 'Notes',
+        date: text(formData, 'date'),
+        excerpt: text(formData, 'excerpt'),
+        md_path: `content/writeups/${slug}.md`,
+        reading_minutes: Math.max(1, Math.ceil(body.split(/\s+/).length / 180)),
+      };
+      if (existingIndex >= 0) items[existingIndex] = entry;
+      else items.unshift(entry);
+      if (entry.category && !categories.includes(entry.category)) {
+        categories.push(entry.category);
+        data.writeups.categories = categories;
+        $('writeupCategory').innerHTML = `<option value="">Select category</option>${categories
+          .map((category) => `<option value="${safe(category)}">${safe(category)}</option>`).join('')}`;
+      }
+      persist();
+      resetWriteupForm();
+      return { entry, body };
+    };
+
+    writeupForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (saveWriteup()) toast('Writeup draft saved in this browser.');
+    });
+
+    $('exportWriteup').addEventListener('click', () => {
+      const saved = saveWriteup();
+      if (!saved) return;
+      downloadWriteupFile(`${saved.entry.slug}.md`, saved.body, 'text/markdown;charset=utf-8');
+      downloadWriteupFile('writeups.json', JSON.stringify(data.writeups, null, 2), 'application/json;charset=utf-8');
+      toast('Downloaded the Markdown and catalog. Add them to the site repository to publish.');
+    });
+
+    $('resetWriteup').addEventListener('click', resetWriteupForm);
+
+    $('writeupPreview').addEventListener('click', async (event) => {
+      const button = event.target.closest('button[data-writeup-edit],button[data-writeup-delete]');
+      if (!button) return;
+      const index = Number(button.dataset.writeupEdit ?? button.dataset.writeupDelete);
+      const item = data.writeups.items[index];
+      if (!item) return;
+
+      if (button.hasAttribute('data-writeup-delete')) {
+        if (!confirm(`Remove "${item.title}" from this browser draft?`)) return;
+        data.writeups.items.splice(index, 1);
+        persist();
+        toast('Removed from the browser draft. Export the catalog to publish the change.');
+        return;
+      }
+
+      $('writeupOriginalSlug').value = item.slug;
+      $('writeupTitle').value = item.title || '';
+      $('writeupSlug').value = item.slug || '';
+      $('writeupCategory').value = item.category || '';
+      $('writeupDifficulty').value = item.difficulty || '';
+      $('writeupDate').value = item.date || '';
+      $('writeupTags').value = (item.tags || []).join(', ');
+      $('writeupExcerpt').value = item.excerpt || '';
+      $('writeupBody').value = '';
+      try {
+        const response = await fetch(item.md_path);
+        if (!response.ok) throw new Error(`Could not load ${item.md_path} (${response.status})`);
+        $('writeupBody').value = await response.text();
+      } catch (error) {
+        console.error('[Admin] Could not load writeup Markdown:', error);
+        toast('Could not load this writeup Markdown. Check the browser console.', 'error');
+      }
+      $('writeupTitle').focus();
+    });
+
+    resetWriteupForm();
   }).catch((error) => {
     console.error('[Admin] Could not load local portfolio data:', error);
     toast(error.message, 'error');
   });
+}
+
+function downloadWriteupFile(name, text, type) {
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function init() {

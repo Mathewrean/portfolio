@@ -171,19 +171,9 @@
     window.__writeupStats = Object.fromEntries(catalog.items.map((item) => [item.slug, localStats(item.slug)]));
     const cat = document.getElementById('writeupCategory');
     cat.innerHTML = ['All', ...catalog.categories].map((c) => `<option>${c}</option>`).join('');
-    const composerCat = document.getElementById('cCategory');
-    if (composerCat) composerCat.innerHTML = catalog.categories.map((c) => `<option>${c}</option>`).join('');
     document.getElementById('writeupSearch').addEventListener('input', applyFilters);
     cat.addEventListener('change', applyFilters);
     document.getElementById('writeupSort').addEventListener('change', applyFilters);
-    const composer = document.getElementById('openComposer');
-    if (composer && composer.tagName === 'BUTTON') {
-      composer.addEventListener('click', () => document.getElementById('composerDialog').showModal());
-    }
-    document.getElementById('closeComposer').addEventListener('click', () => {
-      document.getElementById('composerDialog').close();
-    });
-    document.getElementById('composerForm').addEventListener('submit', onCompose);
     document.getElementById('mailForm')?.addEventListener('submit', onMail);
     applyFilters();
     refreshStats().then(applyFilters).catch((error) => {
@@ -237,42 +227,6 @@
     });
     grid.innerHTML = items.map((item) => card(item, stats(item.slug))).join('')
       || '<p class="muted">No writeups in this filter yet.</p>';
-  }
-
-  function onCompose(event) {
-    event.preventDefault();
-    const title = document.getElementById('cTitle').value.trim();
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 60);
-    const category = document.getElementById('cCategory').value;
-    const tags = document.getElementById('cTags').value.split(',').map((t) => t.trim()).filter(Boolean);
-    const excerpt = document.getElementById('cExcerpt').value.trim();
-    const body = document.getElementById('cBody').value;
-    const md = `---\ntitle: ${title}\ncategory: ${category}\n---\n\n${body}\n`;
-    const entry = {
-      slug,
-      title,
-      category,
-      tags,
-      difficulty: 'Notes',
-      date: new Date().toISOString().slice(0, 10),
-      excerpt,
-      md_path: `content/writeups/${slug}.md`,
-      reading_minutes: Math.max(2, Math.round(body.split(/\s+/).length / 180)),
-    };
-    const catalog = structuredClone(window.__writeups);
-    catalog.items = catalog.items.filter((item) => item.slug !== slug);
-    catalog.items.unshift(entry);
-    download(`${slug}.md`, md);
-    download('writeups.json', JSON.stringify(catalog, null, 2));
-    alert('Downloaded the markdown and writeups.json. Put the markdown in content/writeups/ and replace data/writeups.json, then commit to GitHub.');
-  }
-
-  function download(name, text) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(a.href);
   }
 
   async function onMail(event) {

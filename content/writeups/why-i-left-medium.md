@@ -10,4 +10,4 @@ This catalog is the replacement:
 - a read counter shared across visitors
 - a URL you can send: it lands on this site
 
-New notes are drafted in **New writeup**, then committed as markdown plus `data/writeups.json`.
+New notes are managed from the admin page, then published as Markdown plus `data/writeups.json`.

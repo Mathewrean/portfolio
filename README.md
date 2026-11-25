@@ -25,13 +25,9 @@ python3 -m http.server 4173
 
 Then point your browser at `http://localhost:4173/index.html`. Browsers require a web server because the fetch-based data loading won’t work via `file://`.
 
-## Updating content
+## Admin editing
 
-1. Edit the appropriate JSON file in `/data` (profile, projects, certificates, challenges, research, resume, gallery).
-2. Add or update markdown files under `/content/challenges` or `/content/research` and reference them via the `md_path` values.
-3. Preview locally with the HTTP server above, then commit the JSON/Markdown changes (and any new assets) so GitHub Pages serves the same data automatically.
-
-The admin UI (`admin.html`) loads the portfolio JSON and keeps edits in this browser's local storage. It does not write files or publish changes; update the JSON and Markdown files in the repository to publish them.
+Use `admin.html` to edit portfolio content, including writeups. The public portfolio and writeup pages are read-only. Admin changes are saved as drafts in that browser's local storage; they do not modify repository files or publish automatically. For writeups, use **Download Markdown + catalog**, then add the Markdown file under `/content/writeups` and replace `/data/writeups.json` in the repository.
 
 ## Challenge & research modals
 
@@ -113,13 +109,13 @@ After every add/edit/delete, the admin panel re-fetches the affected JSON and re
 
 ## Writeups
 
-Public notes live in `data/writeups.json` and `content/writeups/`. Each card links to `writeup.html?slug=...`, which is the URL to share.
+Public notes live in `data/writeups.json` and `content/writeups/`. Each card links to `writeup.html?slug=...`, which is the URL to share. Create and edit notes from the **Writeups** panel in `admin.html`; there are no write/edit controls on the public pages.
 
 - Categories, search, and sort (newest, reads, stars, reactions)
 - Fenced `bash` / `shell` blocks render as terminals with copy
 - One react and one star per browser; reads increment once per browser
 - Counts are shared via a public counter (`abacus.jasoncameron.dev`, namespace `mathewrean-portfolio`)
-- **New writeup** downloads a `.md` file and a replacement `data/writeups.json` to commit
+- Admin drafts stay in browser storage until exported; exported Markdown and catalog files must be added to the repository to publish
 - Contact form posts to FormSubmit for `mathewrean@gmail.com` (confirm that inbox once)
 
 ## Restoring this folder onto the GitHub repo
